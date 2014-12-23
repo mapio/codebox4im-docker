@@ -1,4 +1,4 @@
 #!/bin/bash
 
-docker rmi -f mapio/codebox-java
-docker build -t mapio/codebox-java .
+docker rmi -f mapio/codebox4im-docker
+docker build -t mapio/codebox4im-docker .
