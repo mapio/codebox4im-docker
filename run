@@ -1,0 +1,47 @@
+#!/bin/bash
+
+ip=$(boot2docker ip)
+user_key=$1
+
+if [ -z $user_key ]; then
+	echo "Must specify user:key"
+	exit 1
+fi
+
+user=${user_key%%:*}
+key=${user_key##*:}
+
+did=''
+if [[ -r "./data/${user}.did" ]]; then
+
+	did=$(cat "./data/${user}.did")
+	echo -n "Found previous run id '$did'..."
+	running=$(docker inspect -f '{{ .State.Running }}' $did 2>/dev/null)
+	if [[ $running == "true" ]]; then
+		echo " instance alive!"
+	else
+		echo " instance not running! Cleaning up id..."
+		did=''
+		rm -f "./data/${user}.did"
+	fi
+
+fi
+
+if [[ -z "$did" ]]; then
+
+	echo -n "Starting for user '$user' and key '$key'..."
+
+	if [[ ! -d "./data/$user" ]]; then
+		mkdir -p "./data/$user"
+	fi
+	did=$(docker run -d -P -v $(pwd)/data:/data  mapio/codebox4im-docker run --users $user_key "$user")
+	echo $did > "./data/${user}.did"
+	echo " $did."
+fi
+
+port=$(docker port $did)
+port=${port##*:}
+echo "Server running on port '$port'"
+
+echo curl http://$ip:$port/
+
