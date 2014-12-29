@@ -2,16 +2,13 @@ from hashlib import sha256
 from hmac import new as mac
 from json import loads, dumps
 from logging import StreamHandler, FileHandler, Formatter, INFO, getLogger
+from os import environ
 from subprocess import check_output, CalledProcessError
 from sys import argv
 
 from flask import Flask, abort, redirect, request
 
 app = Flask( __name__ )
-try:
-	app.config.from_envvar( 'TM_SETTINGS' )
-except:
-	exit( 'Error loading TM_SETTINGS, is such variable defined?' )
 
 EVENTS_LOG = getLogger( 'EVENTS_LOG' )
 EVENTS_LOG.setLevel( INFO )
@@ -22,14 +19,16 @@ fh.setFormatter( f )
 EVENTS_LOG.addHandler( fh )
 EVENTS_LOG.info( 'Start' )
 
-if not 'SECRET_KEY' in app.config:
-	exit( 'No SECRET_KEY found in TM_SETTINGS file' )
+if not 'ARBITER_SECRET' in environ:
+	exit( 'No ARBITER_SECRET found in environment' )
+ARBITER_SECRET = environ[ 'ARBITER_SECRET' ]
 
-if not 'REDIRECT_URL' in app.config:
-	exit( 'No REDIRECT_URL found in TM_SETTINGS file' )
+if not 'ARBITER_IP' in environ:
+	exit( 'No ARBITER_IP found in environment' )
+REDIRECT_URL = 'http://' + environ[ 'ARBITER_IP' ] + ':{port}/?email={uid}&token={signature}'
 
 def _sign( uid ):
-	return '{0}:{1}'.format( uid, mac( app.config[ 'SECRET_KEY' ], uid, sha256 ).hexdigest() )
+	return '{0}:{1}'.format( uid, mac( ARBITER_SECRET, uid, sha256 ).hexdigest() )
 
 @app.route( '/' )
 def index():
@@ -64,7 +63,7 @@ def spinup( uid_signature = None ):
 		EVENTS_LOG.error( 'rundocker: status "{}"'.format( data[ 'status' ] ) )
 		abort( 404 )
 	EVENTS_LOG.info( 'started container for uid "{}"'.format( uid ) )
-	return redirect( app.config[ 'REDIRECT_URL' ].format( port = data[ 'port' ], uid = uid, signature = signature ) )
+	return redirect( REDIRECT_URL.format( port = data[ 'port' ], uid = uid, signature = signature ) )
 
 if __name__ == "__main__":
 	app.run( debug = True )

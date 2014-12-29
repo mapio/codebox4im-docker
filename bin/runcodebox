@@ -1,15 +1,18 @@
 #!/usr/bin/python
 
+from os import environ
 from urllib2 import urlopen, URLError
-from webbrowser import open as wopen
 from sys import exit
+from webbrowser import open as wopen
 
-ARBITER_URL = 'http://localhost:8000/'
+if not 'ARBITER_IP' in environ:
+	exit( 'Please set ARBITER_IP in the environment' )
+
+ARBITER_URL = 'http://{}/'.format( environ[ 'ARBITER_IP' ] )
 
 try:
 	uid_signature = urlopen( ARBITER_URL ).read()
 except URLError:
-	print "Il sistema non risulta disponibile."
-	exit( 1 )
+	exit( 'The arbiter is not responding' )
 
 wopen( ARBITER_URL + uid_signature, 1 )

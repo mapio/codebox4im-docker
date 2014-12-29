@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [[ -z "$ARBITER_IP" ]]; then
+	echo "Please set ARBITER_IP in the environment"
+	exit 1
+fi
+
+if [[ -z "$ARBITER_SECRET" ]]; then
+	echo "Please set ARBITER_SECRET in the environment"
+	exit 1
+fi
+
+docker run \
+	--name tm_arbiter \
+	-d \
+	-p 80:8000 \
+	-v /var/run/docker.sock:/var/run/docker.sock \
+	-e "ARBITER_IP=$ARBITER_IP" \
+	-e "ARBITER_SECRET=$ARBITER_SECRET" \
+	mapio/tm-arbiter

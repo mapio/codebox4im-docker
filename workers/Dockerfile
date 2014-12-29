@@ -16,6 +16,10 @@ RUN \
 
 RUN npm install -g codebox
 
+RUN mkdir /home/esame/workspace && chown esame:esame /home/esame/workspace
+
+VOLUME [ "/home/esame/workspace" ]
+
 ENV JAVA_HOME /usr/lib/jvm/java-7-oracle
 ENV HOME /home/esame
 
