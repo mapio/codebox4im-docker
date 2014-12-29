@@ -11,11 +11,15 @@ RUN \
 	apt-get update && \
 	apt-get install -y oracle-java7-installer && \
 	rm -rf /var/lib/apt/lists/* && \
-	rm -rf /var/cache/oracle-jdk7-installer
-
-ENV JAVA_HOME /usr/lib/jvm/java-7-oracle
+	rm -rf /var/cache/oracle-jdk7-installer && \
+	adduser --disabled-password --gecos '' esame
 
 RUN npm install -g codebox
+
+ENV JAVA_HOME /usr/lib/jvm/java-7-oracle
+ENV HOME /home/esame
+
+USER esame
 
 EXPOSE 8000
 

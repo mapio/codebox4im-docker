@@ -19,10 +19,13 @@ fi
 user=${user_key%%:*}
 key=${user_key##*:}
 
-did=''
-if [[ -r "./data/${user}.did" ]]; then
+if [[ ! -d "./data/$user" ]]; then
+	mkdir -p "./data/$user/workspace"
+fi
 
-	did=$(cat "./data/${user}.did")
+docker_id="./data/${user}/docker_id.txt"
+if [[ -r "$docker_id" ]]; then
+	did=$(cat "$docker_id")
 	echoerr -n "Found previous run id '$did'..."
 	running=$(docker inspect -f '{{ .State.Running }}' $did 2>/dev/null)
 	if [[ $running == "true" ]]; then
@@ -30,20 +33,16 @@ if [[ -r "./data/${user}.did" ]]; then
 	else
 		echoerr " instance not running! Cleaning up id..."
 		did=''
-		rm -f "./data/${user}.did"
+		rm -f "$docker_id"
 	fi
-
+else
+	did=''
 fi
 
 if [[ -z "$did" ]]; then
-
-	if [[ ! -d "./data/$user" ]]; then
-		mkdir -p "./data/$user"
-	fi
-
-	did=$(docker run --name "cb_${user}" -d -P -v $(pwd)/data:/data mapio/codebox4im-docker run --users $user_key "$user" && sleep 1)
+	did=$(docker run --name "cb_${user}" -d -P -v "$(pwd)/data/${user}":/data mapio/codebox4im-docker run --users "$user_key" workspace && sleep 1)
+	echo $did > "$docker_id"
 	echoerr "Started for user '$user', key '$key', did '$did'"
-	echo $did > "./data/${user}.did"
 fi
 
 port=$(docker port $did)
@@ -57,5 +56,3 @@ else
 	echo "{ \"user\": \"$user\", \"key\": \"$key\", \"status\": \"error\" }"
 	exit 1
 fi
-
-
