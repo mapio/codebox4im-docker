@@ -18,7 +18,12 @@ exiterr() {
 	exit 1
 }
 
-ip=$(boot2docker ip)
+if [[ $(type -t boot2docker) == file ]]; then
+	ip=$(boot2docker ip)
+else
+	ip=$(hostname)
+fi
+
 base_dir=$(realpath ./var/data)
 user_dir="${base_dir}/${user}"
 
