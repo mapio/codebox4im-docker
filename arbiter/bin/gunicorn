@@ -3,7 +3,7 @@
 export BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 mkdir -p "$BASEDIR"/var
 
-if [ "$1" == "start" ]; then
+if [ "$1" == "start" ] || [ "$1" == "startail" ]; then
 
 	export PYTHONPATH="$BASEDIR"
 	export TM_SETTINGS="$BASEDIR"/etc/bootstrap.conf
@@ -33,6 +33,10 @@ if [ "$1" == "start" ]; then
 	else
 		echo " FAILED TO START!"
 		exit 1
+	fi
+
+	if [ "$1" == "startail" ]; then
+		tail -f "$BASEDIR"/var/gunicorn.{errors,accesses} "$BASEDIR"/var/bootstrap.events
 	fi
 
 elif [ "$1" == "tail" ]; then

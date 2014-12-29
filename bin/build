@@ -1,0 +1,7 @@
+#!/bin/bash
+
+docker rmi -f mapio/tm-workers
+docker rmi -f mapio/tm-arbiter
+
+( cd workers && docker build -t mapio/tm-workers . )
+( cd arbiter && docker build -t mapio/tm-arbiter . )
