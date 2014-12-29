@@ -48,7 +48,7 @@ if [[ -z "$did" ]]; then
 	echoerr "Started for user '$user', key '$key', did '$did'"
 fi
 
-port=$(docker port $did)
+port=$(docker port $did 8000)
 port=${port##*:}
 
 if curl -s http://$ip:$port/ | grep -q '<title>Codebox</title>'; then
