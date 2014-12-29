@@ -1,14 +1,5 @@
 #!/bin/bash
 
-echoerr() {
-	echo "$@" 1>&2
-}
-
-exiterr() {
-	exit 1
-}
-
-ip=$(boot2docker ip)
 user_key=$1
 
 if [ -z $user_key ]; then
@@ -19,11 +10,23 @@ fi
 user=${user_key%%:*}
 key=${user_key##*:}
 
-if [[ ! -d "./data/$user" ]]; then
-	mkdir -p "./data/$user/workspace"
+echoerr() {
+	echo "$@" 1>&2
+}
+
+exiterr() {
+	exit 1
+}
+
+ip=$(boot2docker ip)
+base_dir=$(realpath ./var/data)
+user_dir="${base_dir}/${user}"
+
+if [[ ! -d "$user_dir" ]]; then
+	mkdir -p "${user_dir}/workspace"
 fi
 
-docker_id="./data/${user}/docker_id.txt"
+docker_id="${user_dir}/docker_id.txt"
 if [[ -r "$docker_id" ]]; then
 	did=$(cat "$docker_id")
 	echoerr -n "Found previous run id '$did'..."
@@ -40,7 +43,7 @@ else
 fi
 
 if [[ -z "$did" ]]; then
-	did=$(docker run --name "cb_${user}" -d -P -v "$(pwd)/data/${user}":/data mapio/codebox4im-docker run --users "$user_key" workspace && sleep 1)
+	did=$(docker run --name "cb_${user}" -d -P -v "$user_dir":/data mapio/codebox4im-docker run --users "$user_key" workspace && sleep 1)
 	echo $did > "$docker_id"
 	echoerr "Started for user '$user', key '$key', did '$did'"
 fi

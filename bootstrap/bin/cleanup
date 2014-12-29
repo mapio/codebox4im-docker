@@ -1,4 +1,4 @@
 #!/bin/bash
 
 docker rm -f $(docker ps -qa)
-rm -rf ./data
+rm -rf ./var

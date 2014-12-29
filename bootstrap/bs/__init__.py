@@ -7,17 +7,15 @@ from sys import argv
 
 from flask import Flask, abort, redirect, request
 
-REDIRECT_IP = '192.168.59.103'
-
 app = Flask( __name__ )
 try:
-        app.config.from_envvar( 'TM_SETTINGS' )
+	app.config.from_envvar( 'TM_SETTINGS' )
 except:
-        exit( 'Error loading TM_SETTINGS, is such variable defined?' )
+	exit( 'Error loading TM_SETTINGS, is such variable defined?' )
 
 EVENTS_LOG = getLogger( 'EVENTS_LOG' )
 EVENTS_LOG.setLevel( INFO )
-fh = FileHandler( 'EVENTS.log' )
+fh = FileHandler( './var/bootstrap.events' )
 fh.setLevel( INFO )
 f = Formatter( '%(asctime)s: %(message)s', '%Y-%m-%d %H:%M:%S' )
 fh.setFormatter( f )
@@ -47,26 +45,25 @@ def spinup( uid_signature = None ):
 	try:
 		uid, signature = uid_signature.split( ':' )
 	except ValueError:
-		EVENTS_LOG.warn( 'Cannot split uid_signature "{}"'.format( uid_signature ) )
+		EVENTS_LOG.warn( 'cannot split uid_signature "{}"'.format( uid_signature ) )
 		abort( 404 )
 	if not uid_signature == _sign( uid ):
-		EVENTS_LOG.error( 'Wrong signature "{}" for uid {}"'.format( signature, uid ) )
+		EVENTS_LOG.error( 'wrong signature "{}" for uid {}"'.format( signature, uid ) )
 		abort( 404 )
 	try:
-		output = check_output( [ './run', uid_signature ] )
+		output = check_output( [ './bin/rundocker', uid_signature ] )
 	except CalledProcessError, e:
-		EVENTS_LOG.error( 'Run command returned exit code {}'.format( e.returncode ) )
+		EVENTS_LOG.error( 'rundocker: exit code {}'.format( e.returncode ) )
 		abort( 404 )
 	try:
 		data = loads( output )
 	except ValueError:
-		EVENTS_LOG.error( 'Run command returned unparseable json "{}"'.format( output ) )
+		EVENTS_LOG.error( 'rundocker: unparseable json "{}"'.format( output ) )
 		abort( 404 )
 	if not data[ 'status' ] == 'ok':
-		EVENTS_LOG.error( 'Run command returned status "{}"'.format( data[ 'status' ] ) )
+		EVENTS_LOG.error( 'rundocker: status "{}"'.format( data[ 'status' ] ) )
 		abort( 404 )
-
-	EVENTS_LOG.info( 'Started container for uid "{}"'.format( uid ) )
+	EVENTS_LOG.info( 'started container for uid "{}"'.format( uid ) )
 	return redirect( app.config[ 'REDIRECT_URL' ].format( port = data[ 'port' ], uid = uid, signature = signature ) )
 
 if __name__ == "__main__":

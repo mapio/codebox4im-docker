@@ -1,0 +1,64 @@
+#!/bin/bash
+
+export BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+mkdir -p "$BASEDIR"/var
+
+if [ "$1" == "start" ]; then
+
+	export PYTHONPATH="$BASEDIR"
+	export TM_SETTINGS="$BASEDIR"/etc/bootstrap.conf
+	if [ ! -f "$TM_SETTINGS" ]; then
+		echo "Please specify a configuration file"
+		exit 1
+	fi
+	echo -e "Attempting to start gunicorn with\n\tconfiguration: $TM_SETTINGS\n\tpath: $PYTHONPATH"
+	rm -f "$BASEDIR"/var/gunicorn.*
+	touch "$BASEDIR"/var/gunicorn.errors
+
+	gunicorn -c "$BASEDIR"/etc/gunicorn.conf \
+		--access-logfile "$BASEDIR"/var/gunicorn.accesses \
+		--error-logfile "$BASEDIR"/var/gunicorn.errors \
+		--pid "$BASEDIR"/var/gunicorn.pid bs:app
+	chmod go= "$BASEDIR"/var/gunicorn.*
+
+	echo -en "\twaiting for server startup"
+	attempts=10
+	while [[ $attempts > 0 ]] && ! grep -q 'Booting worker with pid' "$BASEDIR"/var/gunicorn.errors; do
+		echo -n .
+		sleep 1
+		attempts=$(( $attempts - 1 ))
+	done
+	if [[ $attempts > 0 ]]; then
+		echo ". started!"
+	else
+		echo " FAILED TO START!"
+		exit 1
+	fi
+
+elif [ "$1" == "tail" ]; then
+
+	tail -f "$BASEDIR"/var/gunicorn.{errors,accesses}
+
+elif [ "$1" == "reload" ]; then
+
+	if [ -r "$BASEDIR"/var/gunicorn.pid ]; then
+		tail -n 0 -f "$BASEDIR"/var/gunicorn.errors & pid=$!
+		kill -HUP $(cat "$BASEDIR"/var/gunicorn.pid)
+		sleep 1
+		kill $pid
+	else
+		echo 'no pidfile present'
+	fi
+
+else
+
+	if [ -r "$BASEDIR"/var/gunicorn.pid ]; then
+		tail -n 0 -f "$BASEDIR"/var/gunicorn.errors & pid=$!
+		kill $(cat "$BASEDIR"/var/gunicorn.pid)
+		sleep 1
+		kill $pid
+	else
+		echo 'no pidfile present'
+	fi
+
+fi
