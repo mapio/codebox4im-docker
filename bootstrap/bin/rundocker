@@ -24,6 +24,7 @@ else
 	ip=$(hostname)
 fi
 
+mkdir -p ./var/data
 base_dir=$(realpath ./var/data)
 user_dir="${base_dir}/${user}"
 
@@ -48,7 +49,7 @@ else
 fi
 
 if [[ -z "$did" ]]; then
-	did=$(docker run --name "cb_${user}" -d -P -v "$user_dir":/data mapio/codebox4im-docker run --users "$user_key" workspace && sleep 1)
+	did=$(docker run --name "cb_${user}" -d -P -v "${user_dir}/workspace":/home/esame/workspace mapio/codebox4im-docker run --users "$user_key" /home/esame/workspace && sleep 1)
 	echo $did > "$docker_id"
 	echoerr "Started for user '$user', key '$key', did '$did'"
 fi
@@ -57,10 +58,10 @@ port=$(docker port $did 8000)
 port=${port##*:}
 
 if curl -s http://$ip:$port/ | grep -q '<title>Codebox</title>'; then
-	echoerr "Server running on port '$port', homepage ok!"
+	echoerr -e "Codebox ready at:\n\thttp://$ip:$port/?email=$user&token=$key"
 	echo "{ \"user\": \"$user\", \"key\": \"$key\", \"did\": \"$did\", \"port\": \"$port\", \"status\": \"ok\" }"
 else
-	echoerr "Somehting wrong happened, curl cant't retrieve the homepage!"
+	echoerr "Somehting wrong happened, cant't retrieve codebox homepage!"
 	echo "{ \"user\": \"$user\", \"key\": \"$key\", \"status\": \"error\" }"
 	exit 1
 fi
