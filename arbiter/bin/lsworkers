@@ -1,0 +1,3 @@
+#!/bin/bash
+
+docker ps --no-trunc | grep tm_worker | cut -f1 -d ' '

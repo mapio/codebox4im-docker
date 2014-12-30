@@ -1,0 +1,19 @@
+#!/bin/bash
+
+did=$1
+
+if [[ -z "$did" ]]; then
+	echo "Please specify container id"
+	exit 1
+fi
+
+name=$(docker inspect -f '{{ .Name }}' $did)
+name=${name##/}
+
+if [[ ! $name = tm_worker* ]]; then
+	echo "The given contained does not apper to be a tm_worker, it is called '$name' instead"
+	exit 1
+fi
+
+echo "Saving '$name' workspace in '${name}.tar'..."
+docker exec $did sh -c 'tar cvf - /home/esame/workspace 2>/dev/null' > $name.tar
