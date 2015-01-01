@@ -33,3 +33,5 @@ The last component is just a dockerized version of [tristo-mietitore](https://gi
 The only external dependency is the configuration file (that is mounted as a
 single file volume); moreover, the *uploads* directory is also mounted as a
 local volume.
+
+![Analytics](https://ga-beacon.appspot.com/UA-377250-20/tm-docker?pixel)
