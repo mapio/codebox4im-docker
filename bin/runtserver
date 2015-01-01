@@ -1,0 +1,21 @@
+#!/bin/bash
+
+if [[ -z "$TM_CONFIGS" ]]; then
+	echo "Please set TM_CONFIGS in the environment"
+	exit 1
+fi
+
+if [[ ! -r "$TM_CONFIGS" ]]; then
+	echo "TM_CONFIGS not set to a file"
+	exit 1
+fi
+
+export TM_CONFIGS=$(realpath $TM_CONFIGS)
+
+docker run \
+	--name tm_tserver \
+	-d \
+	-v $TM_CONFIGS:/app/etc/conf.py \
+	-v $(pwd)/uploads:/app/uploads \
+	-p 8000:8000 \
+	mapio/tm-tserver

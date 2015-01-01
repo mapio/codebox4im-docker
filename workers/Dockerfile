@@ -4,17 +4,20 @@ MAINTAINER Massimo Santini "santini@di.unimi.it"
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN \
-	echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true \
+RUN add-apt-repository -y ppa:webupd8team/java
+
+RUN apt-get update
+
+RUN	echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true \
 		| debconf-set-selections && \
-	add-apt-repository -y ppa:webupd8team/java && \
-	apt-get update && \
-	apt-get install -y oracle-java7-installer && \
-	rm -rf /var/lib/apt/lists/* && \
-	rm -rf /var/cache/oracle-jdk7-installer && \
-	adduser --disabled-password --gecos '' esame
+	 apt-get install -y oracle-java7-installer && \
+	 rm -rf /var/cache/oracle-jdk7-installer
+
+RUN rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g codebox
+
+RUN adduser --disabled-password --gecos '' esame
 
 RUN mkdir /home/esame/workspace && chown esame:esame /home/esame/workspace
 

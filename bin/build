@@ -1,7 +1,13 @@
 #!/bin/bash
 
-docker rmi -f mapio/tm-workers
-docker rmi -f mapio/tm-arbiter
+if [ ! -z "$1" ]; then
+	docker rmi -f mapio/tm-workers
+	docker rmi -f mapio/tm-arbiter
+	docker rmi -f mapio/tm-tserver
+fi
+
+( cd tserver; ./bin/get_tm )
 
 ( cd workers && docker build -t mapio/tm-workers . )
 ( cd arbiter && docker build -t mapio/tm-arbiter . )
+( cd tserver && docker build -t mapio/tm-tserver . )
