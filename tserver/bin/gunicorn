@@ -7,11 +7,14 @@ if [ "$1" == "start" ] || [ "$1" == "startail" ]; then
 
 	export PYTHONPATH="$BASEDIR/bin/tm"
 	export TM_SETTINGS="/app/etc/conf.py"
-	echo "UPLOAD_DIR='/app/uploads/'" >> $TM_SETTINGS
-	if [ ! -f "$TM_SETTINGS" ]; then
-		echo "Please specify a configuration file"
-		exit 1
-	fi
+
+	# replacing UPLOAD_DIR and HOME
+	export TM_SETTINGS_ORIG="$TM_SETTINGS"
+	export TM_SETTINGS="${TM_SETTINGS_ORIG%%.py}-adj.py"
+	( cat "$TM_SETTINGS_ORIG" | grep -v 'UPLOAD_DIR.*='| grep -v 'HOME.*='
+	  echo "UPLOAD_DIR='/app/uploads/'"
+	  echo "HOME='/home/esame/workspace'"
+	) >> "$TM_SETTINGS"
 	msg="Attempting to start gunicorn with\n\tconfiguration: $TM_SETTINGS\n\tcode: $PYTHONPATH"
 	if grep -q '^BIND\s*=' "$TM_SETTINGS"; then
 		bind="$(grep '^BIND\s*=' $TM_SETTINGS | cut -d = -f 2 | cut -d"'" -f 2)"
