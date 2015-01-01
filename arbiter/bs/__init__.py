@@ -50,17 +50,17 @@ def spinup( uid_signature = None ):
 		EVENTS_LOG.error( 'wrong signature "{}" for uid {}"'.format( signature, uid ) )
 		abort( 404 )
 	try:
-		output = check_output( [ './bin/rundocker', uid_signature ] )
+		output = check_output( [ './bin/runworker', uid_signature ] )
 	except CalledProcessError, e:
-		EVENTS_LOG.error( 'rundocker: exit code {}'.format( e.returncode ) )
+		EVENTS_LOG.error( 'runworker: exit code {}'.format( e.returncode ) )
 		abort( 404 )
 	try:
 		data = loads( output )
 	except ValueError:
-		EVENTS_LOG.error( 'rundocker: unparseable json "{}"'.format( output ) )
+		EVENTS_LOG.error( 'runworker: unparseable json "{}"'.format( output ) )
 		abort( 404 )
 	if not data[ 'status' ] == 'ok':
-		EVENTS_LOG.error( 'rundocker: status "{}"'.format( data[ 'status' ] ) )
+		EVENTS_LOG.error( 'runworker: status "{}"'.format( data[ 'status' ] ) )
 		abort( 404 )
 	EVENTS_LOG.info( 'started container for uid "{}"'.format( uid ) )
 	return redirect( REDIRECT_URL.format( port = data[ 'port' ], uid = uid, signature = signature ) )
