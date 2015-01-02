@@ -10,11 +10,10 @@ if [ "$1" == "start" ] || [ "$1" == "startail" ]; then
 	rm -f "$BASEDIR"/var/gunicorn.*
 	touch "$BASEDIR"/var/gunicorn.errors
 
-	gunicorn -c "$BASEDIR"/etc/gunicorn.conf \
+	gunicorn -m 0022 -c "$BASEDIR"/etc/gunicorn.conf \
 		--access-logfile "$BASEDIR"/var/gunicorn.accesses \
 		--error-logfile "$BASEDIR"/var/gunicorn.errors \
 		--pid "$BASEDIR"/var/gunicorn.pid bs:app
-	chmod go= "$BASEDIR"/var/gunicorn.*
 
 	echo -en "\twaiting for server startup"
 	attempts=10
@@ -29,6 +28,7 @@ if [ "$1" == "start" ] || [ "$1" == "startail" ]; then
 		echo " FAILED TO START!"
 		exit 1
 	fi
+	chmod go= "$BASEDIR"/var/gunicorn.* "$BASEDIR"/var/bootstrap.events
 
 	if [ "$1" == "startail" ]; then
 		tail -f "$BASEDIR"/var/gunicorn.{errors,accesses} "$BASEDIR"/var/bootstrap.events
