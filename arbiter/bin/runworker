@@ -16,6 +16,11 @@ if [[ -z "$ARBITER_ADDRESS" ]]; then
 	exit 1
 fi
 
+if [[ -z "$TSERVER_ADDRESS" ]]; then
+	echoerr "Please set TSERVER_ADDRESS in the environment"
+	exit 1
+fi
+
 user=${user_key%%:*}
 key=${user_key##*:}
 
@@ -44,7 +49,7 @@ else
 fi
 
 if [[ -z "$did" ]]; then
-	did=$(docker run --name "tm_worker_${user}" -d -P -v "${user_dir}/workspace":/home/esame/workspace mapio/tm-workers run --users "$user_key" /home/esame/workspace && sleep 1)
+	did=$(docker run --name "tm_worker_${user}" -d -P -e "TSERVER_ADDRESS=$TSERVER_ADDRESS" -v "${user_dir}/workspace":/home/esame/workspace mapio/tm-workers run --users "$user_key" /home/esame/workspace && sleep 1)
 	echo $did > "$docker_id"
 	echoerr "Started for user '$user', key '$key', did '$did'"
 fi

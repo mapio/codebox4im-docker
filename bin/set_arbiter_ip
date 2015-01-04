@@ -2,6 +2,8 @@ export ARBITER_SECRET=$(uuidgen)
 
 if [[ $HOSTNAME == "codebox.silab.di.unimi.it" ]]; then
 	export ARBITER_ADDRESS=$HOSTNAME
+	export TSERVER_ADDRESS=$HOSTNAME:8000
 else
 	export ARBITER_ADDRESS=$(boot2docker ip)
+	export TSERVER_ADDRESS=$(boot2docker ip):8000
 fi
