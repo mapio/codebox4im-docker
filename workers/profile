@@ -1,0 +1,18 @@
+umask 022
+
+export PAGER=less
+export LESSCHARSET=utf-8
+export LESS='-SR'
+export IGNOREEOF=10000
+
+shopt -s histappend
+shopt -s cmdhist
+
+export LANG=en_US.UTF-8
+export LC_ALL=$LANG
+eval $(locale)
+
+export PATH="/home/esame/workspace/bin":$PATH
+export MAKEFILES="/home/esame/workspace/bin/Makefile"
+
+[[ $PS1 ]] && source ~/.bashrc

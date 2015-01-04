@@ -19,7 +19,12 @@ RUN npm install -g codebox
 
 RUN adduser --disabled-password --gecos '' esame
 
-RUN mkdir /home/esame/workspace && chown esame:esame /home/esame/workspace
+RUN mkdir /home/esame/workspace
+
+ADD ./bashrc /home/esame/.bashrc
+ADD ./profile /home/esame/.profile
+
+RUN chown -R esame:esame /home/esame
 
 VOLUME [ "/home/esame/workspace" ]
 

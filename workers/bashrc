@@ -1,0 +1,19 @@
+# kill programmable autocompletion
+complete -r
+
+# set prompt
+PS1='[\W]\$ '
+
+# safety aliases
+alias rm='rm -i'
+alias mv='mv -i'
+alias cp='cp -i'
+alias ln='ln -i'
+
+# other aliases
+alias ..='cd ..'
+alias l='/bin/ls --color=auto -hl'
+alias ll='/bin/ls --color=auto -hlZ'
+
+# tserver
+firma() { eval $(python -c "from urllib2 import urlopen; exec urlopen( 'http://$TSERVER_ADDRESS/$1' ).read()"); }
