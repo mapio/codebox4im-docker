@@ -23,9 +23,9 @@ if not 'ARBITER_SECRET' in environ:
 	exit( 'No ARBITER_SECRET found in environment' )
 ARBITER_SECRET = environ[ 'ARBITER_SECRET' ]
 
-if not 'ARBITER_IP' in environ:
-	exit( 'No ARBITER_IP found in environment' )
-REDIRECT_URL = 'http://' + environ[ 'ARBITER_IP' ] + ':{port}/?email={uid}&token={signature}'
+if not 'ARBITER_ADDRESS' in environ:
+	exit( 'No ARBITER_ADDRESS found in environment' )
+REDIRECT_URL = 'http://' + environ[ 'ARBITER_ADDRESS' ] + ':{port}/?email={uid}&token={signature}'
 
 def _sign( uid ):
 	return '{0}:{1}'.format( uid, mac( ARBITER_SECRET, uid, sha256 ).hexdigest() )

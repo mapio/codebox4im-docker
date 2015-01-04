@@ -11,8 +11,8 @@ if [[ -z "$user_key" ]]; then
 	exit 1
 fi
 
-if [[ -z "$ARBITER_IP" ]]; then
-	echoerr "Please set ARBITER_IP in the environment"
+if [[ -z "$ARBITER_ADDRESS" ]]; then
+	echoerr "Please set ARBITER_ADDRESS in the environment"
 	exit 1
 fi
 
@@ -52,8 +52,8 @@ fi
 port=$(docker port $did 8000)
 port=${port##*:}
 
-if curl -s http://$ARBITER_IP:$port/ | grep -q '<title>Codebox</title>'; then
-	echoerr -e "Codebox ready at:\n\thttp://$ARBITER_IP:$port/?email=$user&token=$key"
+if curl -s http://$ARBITER_ADDRESS:$port/ | grep -q '<title>Codebox</title>'; then
+	echoerr -e "Codebox ready at:\n\thttp://$ARBITER_ADDRESS:$port/?email=$user&token=$key"
 	echo "{ \"user\": \"$user\", \"key\": \"$key\", \"did\": \"$did\", \"port\": \"$port\", \"status\": \"ok\" }"
 else
 	echoerr "Somehting wrong happened, cant't retrieve codebox homepage!"

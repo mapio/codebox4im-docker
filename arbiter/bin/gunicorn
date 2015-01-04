@@ -6,7 +6,7 @@ mkdir -p "$BASEDIR"/var
 if [ "$1" == "start" ] || [ "$1" == "startail" ]; then
 
 	export PYTHONPATH="$BASEDIR"
-	echo -e "Attempting to start gunicorn with\n\tsecret: $ARBITER_SECRET\n\tip: $ARBITER_IP"
+	echo -e "Attempting to start gunicorn with\n\tsecret: $ARBITER_SECRET\n\tip: $ARBITER_ADDRESS"
 	rm -f "$BASEDIR"/var/gunicorn.*
 	touch "$BASEDIR"/var/gunicorn.errors
 

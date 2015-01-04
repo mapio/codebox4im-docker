@@ -5,10 +5,10 @@ from urllib2 import urlopen, URLError
 from sys import exit
 from webbrowser import open as wopen
 
-if not 'ARBITER_IP' in environ:
-	exit( 'Please set ARBITER_IP in the environment' )
+if not 'ARBITER_ADDRESS' in environ:
+	exit( 'Please set ARBITER_ADDRESS in the environment' )
 
-ARBITER_URL = 'http://{}/'.format( environ[ 'ARBITER_IP' ] )
+ARBITER_URL = 'http://{}/'.format( environ[ 'ARBITER_ADDRESS' ] )
 
 try:
 	uid_signature = urlopen( ARBITER_URL ).read()
