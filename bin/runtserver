@@ -12,6 +12,7 @@ fi
 
 export TM_CONFIGS=$(realpath $TM_CONFIGS)
 
+did=$(
 docker run \
 	--name tm_tserver \
 	-d \
@@ -19,3 +20,18 @@ docker run \
 	-v $(pwd)/uploads:/app/uploads \
 	-p 8000:8000 \
 	mapio/tm-tserver
+)
+
+echo -en "Waiting for tserver startup"
+attempts=10
+while [[ $attempts > 0 ]] && ! docker logs tm_tserver | grep 'tserver started' >/dev/null; do
+	echo -n .
+	sleep 1
+	attempts=$(( $attempts - 1 ))
+done
+if [[ $attempts > 0 ]]; then
+	echo ". started ($did)!"
+else
+	echo " FAILED TO START!"
+	exit 1
+fi

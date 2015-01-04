@@ -15,6 +15,7 @@ if [[ -z "$TSERVER_ADDRESS" ]]; then
 	exit 1
 fi
 
+did=$(
 docker run \
 	--name tm_arbiter \
 	-d \
@@ -24,3 +25,18 @@ docker run \
 	-e "ARBITER_ADDRESS=$ARBITER_ADDRESS" \
 	-e "ARBITER_SECRET=$ARBITER_SECRET" \
 	mapio/tm-arbiter
+)
+
+echo -en "Waiting for arbiter startup"
+attempts=10
+while [[ $attempts > 0 ]] && ! docker logs tm_arbiter | grep 'arbiter started' >/dev/null; do
+	echo -n .
+	sleep 1
+	attempts=$(( $attempts - 1 ))
+done
+if [[ $attempts > 0 ]]; then
+	echo ". started ($did)!"
+else
+	echo " FAILED TO START!"
+	exit 1
+fi

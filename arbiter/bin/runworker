@@ -17,7 +17,7 @@ wait_codebox() {
 		attempts=$(( $attempts - 1 ))
 	done
 	if [[ $attempts > 0 ]]; then
-		echoerr ". started!"
+		echoerr ". started ($did)!"
 	else
 		echoerr " FAILED TO START!"
 		exit 1
@@ -72,7 +72,6 @@ if [[ -z "$did" ]]; then
 	did=$(docker run --name "tm_worker_${user}" -d -P -e "TSERVER_ADDRESS=$TSERVER_ADDRESS" -v "${user_dir}/workspace":/home/esame/workspace mapio/tm-workers run --users "$user_key" /home/esame/workspace)
 	wait_codebox $did
 	echo $did > "$docker_id"
-	echoerr "Started for user '$user', key '$key', did '$did'"
 fi
 
 port=$(docker port $did 8000)
