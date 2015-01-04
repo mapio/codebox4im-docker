@@ -1,0 +1,21 @@
+#!/bin/bash
+
+echocol() { echo -e "\033[32m*** $@...\033[0m"; }
+
+echocol "Cleanup running containers"
+( [[ $(docker ps -qa | wc -l) -gt 0 ]] && docker rm -f $(docker ps -qa) ) >/dev/null 2>&1
+
+echocol "Building images"
+( ./bin/build ) >/dev/null 2>&1
+
+. ./bin/set_addresses
+
+echocol "Starting servers"
+./bin/runtserver
+./bin/runarbiter
+
+echocol "Starting a worker"
+
+user_key=$(curl -s $ARBITER_ADDRESS)
+location=$(curl -sD - -o /dev/null $ARBITER_ADDRESS/$user_key | grep ^Location)
+echo $location
