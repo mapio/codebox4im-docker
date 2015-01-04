@@ -23,7 +23,7 @@ if [ "$1" == "start" ] || [ "$1" == "startail" ]; then
 		attempts=$(( $attempts - 1 ))
 	done
 	if [[ $attempts > 0 ]]; then
-		echo ". started!"
+		echo ". arbiter started!"
 	else
 		echo " FAILED TO START!"
 		exit 1
