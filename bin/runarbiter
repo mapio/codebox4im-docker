@@ -10,11 +10,17 @@ if [[ -z "$ARBITER_SECRET" ]]; then
 	exit 1
 fi
 
+if [[ -z "$TSERVER_ADDRESS" ]]; then
+	echoerr "Please set TSERVER_ADDRESS in the environment"
+	exit 1
+fi
+
 docker run \
 	--name tm_arbiter \
 	-d \
 	-p 80:8000 \
 	-v /var/run/docker.sock:/var/run/docker.sock \
+	-e "TSERVER_ADDRESS=$TSERVER_ADDRESS" \
 	-e "ARBITER_ADDRESS=$ARBITER_ADDRESS" \
 	-e "ARBITER_SECRET=$ARBITER_SECRET" \
 	mapio/tm-arbiter
