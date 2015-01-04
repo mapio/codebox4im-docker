@@ -6,6 +6,26 @@ echoerr() {
 	echo "$@" 1>&2
 }
 
+wait_codebox() {
+
+	local did="$1"
+	echoerr -en "Waiting for codebox startup"
+	attempts=10
+	while [[ $attempts > 0 ]] && ! docker logs "$did" | grep "Codebox is running" >/dev/null; do
+		echoerr -n .
+		sleep 1
+		attempts=$(( $attempts - 1 ))
+	done
+	if [[ $attempts > 0 ]]; then
+		echoerr ". started!"
+	else
+		echoerr " FAILED TO START!"
+		exit 1
+	fi
+
+}
+
+
 if [[ -z "$user_key" ]]; then
 	echoerr "Missing user:key command line argument"
 	exit 1
@@ -49,7 +69,8 @@ else
 fi
 
 if [[ -z "$did" ]]; then
-	did=$(docker run --name "tm_worker_${user}" -d -P -e "TSERVER_ADDRESS=$TSERVER_ADDRESS" -v "${user_dir}/workspace":/home/esame/workspace mapio/tm-workers run --users "$user_key" /home/esame/workspace && sleep 1)
+	did=$(docker run --name "tm_worker_${user}" -d -P -e "TSERVER_ADDRESS=$TSERVER_ADDRESS" -v "${user_dir}/workspace":/home/esame/workspace mapio/tm-workers run --users "$user_key" /home/esame/workspace)
+	wait_codebox $did
 	echo $did > "$docker_id"
 	echoerr "Started for user '$user', key '$key', did '$did'"
 fi
