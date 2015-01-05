@@ -30,9 +30,12 @@ REDIRECT_URL = 'http://' + environ[ 'ARBITER_ADDRESS' ] + ':{port}/?email={uid}&
 def _sign( uid ):
 	return '{0}:{1}'.format( uid, mac( ARBITER_SECRET, uid, sha256 ).hexdigest() )
 
-@app.route( '/' )
+@app.route( '/', methods = [ 'GET', 'POST' ] )
 def index():
-	uid = request.remote_addr
+	if 'uid' in request.form:
+		uid = request.form[ 'uid' ]
+	else:
+		uid = request.remote_addr
 	return _sign( uid ), 200, { 'Content-Type': 'text/plain;charset=UTF-8' }
 
 @app.route( '/favicon.ico' )

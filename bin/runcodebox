@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
 from os import environ
+from os.path import expanduser, join
+from sys import argv, exit
 from urllib2 import urlopen, URLError
-from sys import exit
+from uuid import uuid4
 from webbrowser import open as wopen
 
 if not 'ARBITER_ADDRESS' in environ:
@@ -10,9 +12,24 @@ if not 'ARBITER_ADDRESS' in environ:
 
 ARBITER_URL = 'http://{}/'.format( environ[ 'ARBITER_ADDRESS' ] )
 
+uid_file = join( expanduser( '~' ), '.runcodebox.uid' )
 try:
-	uid_signature = urlopen( ARBITER_URL ).read()
-except URLError:
-	exit( 'The arbiter is not responding' )
+	uid = open( uid_file, 'r' ).read()
+except IOError:
+	uid = uuid4().hex
+	with open( uid_file, 'w' ) as uid_out:
+		uid_out.write( uid )
 
-wopen( ARBITER_URL + uid_signature, 1 )
+try:
+	uid_signature = urlopen( ARBITER_URL, data = 'uid={}'.format( uid ) ).read()
+except URLError:
+	exit( 'The arbiter is not responding the (uid, signature) pair' )
+
+if len( argv ) == 2 and argv[ 1 ] == '-d':
+	print uid_signature
+	try:
+		urlopen( ARBITER_URL + uid_signature ).read()
+	except URLError:
+		exit( 'The arbiter is not spawning the codebox instance' )
+else:
+	wopen( ARBITER_URL + uid_signature, 1 )
