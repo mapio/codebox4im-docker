@@ -9,6 +9,8 @@ described below.
 
 ## The arbiter
 
+[![Docker Repository on Quay.io](https://quay.io/repository/mapio/tm-docker-arbiter/status "Docker Repository on Quay.io")](https://quay.io/repository/mapio/tm-docker-arbiter)
+
 The arbiter is a web server that, for every distinct request, answers an
 `username:token` pair. Presently are considered distinct requests coming from
 different IPs (the `username` being the IP itself).
@@ -19,6 +21,8 @@ redirect to an already running worker).
 
 ## The workers
 
+[![Docker Repository on Quay.io](https://quay.io/repository/mapio/tm-docker-workers/status "Docker Repository on Quay.io")](https://quay.io/repository/mapio/tm-docker-workers)
+
 A worker is an insance of [Codebox](https://www.codebox.io/) configured for
 single user access, using the `username:token` pair as access credentials;
 every worker listens on a different TCP port.
@@ -27,6 +31,8 @@ Usually the workers run on the same server that hosts the arbiter. Moreover,
 every worker mounts the Codebox *workspace* as a local volume.
 
 ## Tristo mietitore
+
+[![Docker Repository on Quay.io](https://quay.io/repository/mapio/tm-docker-tserver/status "Docker Repository on Quay.io")](https://quay.io/repository/mapio/tm-docker-tserver)
 
 The last component is just a dockerized version of [tristo-mietitore](https://github.com/mapio/tristo-mietitore).
 
