@@ -14,8 +14,8 @@ echocol "Starting servers"
 ./bin/runtserver
 ./bin/runarbiter
 
-echocol "Starting a worker"
+echocol "Starting a few workers"
 
-user_key=$(curl -s $ARBITER_ADDRESS)
-location=$(curl -sD - -o /dev/null $ARBITER_ADDRESS/$user_key | grep ^Location)
-echo $location
+for i in $(seq 0 9); do
+	echo "worker $i, uid:signature = " $(docker run --rm -v $(pwd)/bin/runcodebox:/runcodebox -e ARBITER_ADDRESS=$ARBITER_ADDRESS dockerfile/python /runcodebox -d)
+done
