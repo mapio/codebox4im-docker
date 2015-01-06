@@ -26,10 +26,10 @@ ADD ./profile /home/esame/.profile
 
 RUN chown -R esame:esame /home/esame
 
-VOLUME [ "/home/esame/workspace" ]
-
 ENV JAVA_HOME /usr/lib/jvm/java-7-oracle
 ENV HOME /home/esame
+
+WORKDIR /home/esame
 
 USER esame
 

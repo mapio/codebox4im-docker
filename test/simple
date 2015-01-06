@@ -1,0 +1,13 @@
+#!/bin/bash -e
+
+echocol() { echo -ne "\033[31m$@...\033[0m\n"; }
+
+echocol "Starting servers"
+export TM_CONFIGS=tserver/etc/conf.py && ./bin/runtserver
+./bin/runarbiter
+
+echocol "Starting a few workers"
+
+for i in $(seq 0 2); do
+	echo "worker $i, uid:signature = " $(docker run --rm -v $(pwd)/bin/runcodebox:/runcodebox -e ARBITER_ADDRESS=$ARBITER_ADDRESS dockerfile/python /runcodebox -d)
+done

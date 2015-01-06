@@ -1,0 +1,27 @@
+#!/bin/bash -e
+
+echocol() { echo -ne "\033[31m$@...\033[0m\n"; }
+
+echocol "Preparing confs"
+
+tempdir=$(mktemp -d /tmp/tmd-XXXXXXXXX) || exit 1
+mkdir $tempdir/bundle
+echo "Just a file"  > $tempdir/bundle/file.txt
+( for i in $(seq 0 9); do
+	echo -e "$i\tUID #$i"
+done ) > $tempdir/registered_uids.txt
+./tserver/bin/tm mkconf -b ./tserver/etc/conf.py -r $tempdir/registered_uids.txt $tempdir/bundle ./test/conf.py
+export TM_CONFIGS=./test/conf.py
+
+echocol "Starting servers"
+./bin/runtserver
+./bin/runarbiter
+
+echocol "Starting a few workers"
+
+for i in $(seq 0 9); do
+	uid_signature=$(docker run --rm -v $(pwd)/bin/runcodebox:/runcodebox -e ARBITER_ADDRESS=$ARBITER_ADDRESS dockerfile/python /runcodebox -d)
+	uid=${uid_signature%%:*}
+	signature=${uid_signature##*:}
+	echo "worker $i, uid $uid, signature $signature"
+done

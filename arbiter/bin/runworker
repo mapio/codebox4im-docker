@@ -52,6 +52,8 @@ if [[ ! -d "$user_dir" ]]; then
 	mkdir -p "${user_dir}/workspace"
 fi
 
+chown -R 1000:1000 "$user_dir"
+
 docker_id="${user_dir}/docker_id.txt"
 if [[ -r "$docker_id" ]]; then
 	did=$(cat "$docker_id")

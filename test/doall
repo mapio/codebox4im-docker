@@ -1,0 +1,17 @@
+#!/bin/bash -e
+
+echocol() { echo -e "\033[32m*** $@...\033[0m"; }
+
+echocol "Building images"
+( ./bin/build ) >/dev/null 2>&1
+
+. ./bin/set_addresses
+
+tests="sign"
+
+for t in $tests; do
+	echocol "Cleanup running containers"
+	( [[ $(docker ps -qa | wc -l) -gt 0 ]] && docker rm -f $(docker ps -qa) ) >/dev/null 2>&1
+	echocol $t
+	./test/$t
+done
