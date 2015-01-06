@@ -11,7 +11,7 @@ tests="sign"
 
 for t in $tests; do
 	echocol "Cleanup running containers"
-	( [[ $(docker ps -qa | wc -l) -gt 0 ]] && docker rm -f $(docker ps -qa) ) >/dev/null 2>&1
+	( [[ $(docker ps -qa | wc -l) -gt 0 ]] && docker rm -f $(docker ps -qa) ) >/dev/null 2>&1 || true
 	echocol $t
 	./test/$t
 done
