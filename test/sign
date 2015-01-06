@@ -2,26 +2,62 @@
 
 echocol() { echo -ne "\033[31m$@...\033[0m\n"; }
 
+NUM_WORKERS=2
+
 echocol "Preparing confs"
 
 tempdir=$(mktemp -d /tmp/tmd-XXXXXXXXX) || exit 1
 mkdir $tempdir/bundle
 echo "Just a file"  > $tempdir/bundle/file.txt
-( for i in $(seq 0 9); do
+( for i in $(seq 0 $NUM_WORKERS); do
 	echo -e "$i\tUID #$i"
 done ) > $tempdir/registered_uids.txt
 ./tserver/bin/tm mkconf -b ./tserver/etc/conf.py -r $tempdir/registered_uids.txt $tempdir/bundle ./test/conf.py
 export TM_CONFIGS=./test/conf.py
 
 echocol "Starting servers"
-./bin/runtserver
+rm -rf uploads && ./bin/runtserver
 ./bin/runarbiter
 
-echocol "Starting a few workers"
+echocol "Starting, signing and uploading $(($NUM_WORKERS + 1)) worker(s)"
 
-for i in $(seq 0 9); do
+for i in $(seq 0 $NUM_WORKERS); do
 	uid_signature=$(docker run --rm -v $(pwd)/bin/runcodebox:/runcodebox -e ARBITER_ADDRESS=$ARBITER_ADDRESS dockerfile/python /runcodebox -d)
 	uid=${uid_signature%%:*}
 	signature=${uid_signature##*:}
-	echo "worker $i, uid $uid, signature $signature"
+	echo "worker $i: uid $uid, signature $signature"
+	sign=$(docker exec "tm_worker_$uid" bash -c ". ./.bashrc; firma $i")
+	echo -e "\tsign: $sign"
+	upload=$(docker exec "tm_worker_$uid" bash -c "/tmp/tmclient ul")
+	echo -e "\tupload: $upload"
 done
+
+echocol "Saving workspaces"
+
+for i in $(./arbiter/bin/lsworkers); do
+	./arbiter/bin/tarworkspace $i
+done
+
+for t in tm_worker_*.tar; do
+	echo -n "Checking $t.."
+	if ! tar tvf $t | grep -q home/esame/workspace/file.txt; then
+		echo " FAILED!"
+		exit 1
+	fi
+	rm -f $t
+	echo " ok."
+done
+
+echocol "Testing uploads"
+
+for i in $(seq 0 $NUM_WORKERS); do
+	echo -n "Checking UID $i.."
+	if ! tar tvf ./uploads/$i/*.tar | grep -q file.txt; then
+		exit 1
+	fi
+	rm -f $t
+	echo " ok."
+done
+
+rm -rf ./uploads
+rm -rf $tempdir

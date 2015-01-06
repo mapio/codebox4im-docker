@@ -7,7 +7,7 @@ echocol "Building images"
 
 . ./bin/set_addresses
 
-tests="sign"
+tests="simple sign"
 
 for t in $tests; do
 	echocol "Cleanup running containers"
