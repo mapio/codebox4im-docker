@@ -14,7 +14,7 @@ RUN rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-ADD . /app
+COPY . /app
 
 CMD [ "/app/bin/gunicorn", "startail" ]
 

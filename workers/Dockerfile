@@ -21,8 +21,8 @@ RUN adduser --disabled-password --gecos '' esame
 
 RUN mkdir /home/esame/workspace
 
-ADD ./bashrc /home/esame/.bashrc
-ADD ./profile /home/esame/.profile
+COPY ./bashrc /home/esame/.bashrc
+COPY ./profile /home/esame/.profile
 
 RUN chown -R esame:esame /home/esame
 
