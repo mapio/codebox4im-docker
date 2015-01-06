@@ -48,12 +48,6 @@ mkdir -p ./var/data
 base_dir=$(realpath ./var/data)
 user_dir="${base_dir}/${user}"
 
-if [[ ! -d "$user_dir" ]]; then
-	mkdir -p "${user_dir}/workspace"
-fi
-
-chown -R 1000:1000 "$user_dir"
-
 docker_id="${user_dir}/docker_id.txt"
 if [[ -r "$docker_id" ]]; then
 	did=$(cat "$docker_id")
@@ -71,7 +65,7 @@ else
 fi
 
 if [[ -z "$did" ]]; then
-	did=$(docker run --name "tm_worker_${user}" -d -P -e "TSERVER_ADDRESS=$TSERVER_ADDRESS" -v "${user_dir}/workspace":/home/esame/workspace mapio/tm-workers run --users "$user_key" /home/esame/workspace)
+	did=$(docker run --name "tm_worker_${user}" -d -P -e "TSERVER_ADDRESS=$TSERVER_ADDRESS" mapio/tm-workers run --users "$user_key" /home/esame/workspace)
 	wait_codebox $did
 	echo $did > "$docker_id"
 fi
