@@ -47,6 +47,7 @@ key=${user_key##*:}
 mkdir -p ./var/data
 base_dir=$(realpath ./var/data)
 user_dir="${base_dir}/${user}"
+mkdir -p "${user_dir}"
 
 docker_id="${user_dir}/docker_id.txt"
 if [[ -r "$docker_id" ]]; then
