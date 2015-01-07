@@ -36,6 +36,7 @@ def index():
 		uid = request.form[ 'uid' ]
 	else:
 		uid = request.remote_addr
+	EVENTS_LOG.info( 'Returning signed pair to uid "{}"'.format( uid ) )
 	return _sign( uid ), 200, { 'Content-Type': 'text/plain;charset=UTF-8' }
 
 @app.route( '/favicon.ico' )
@@ -47,15 +48,16 @@ def spinup( uid_signature = None ):
 	try:
 		uid, signature = uid_signature.split( ':' )
 	except ValueError:
-		EVENTS_LOG.warn( 'cannot split uid_signature "{}"'.format( uid_signature ) )
+		EVENTS_LOG.warn( 'Cannot split uid_signature "{}"'.format( uid_signature ) )
 		abort( 404 )
 	if not uid_signature == _sign( uid ):
-		EVENTS_LOG.error( 'wrong signature "{}" for uid {}"'.format( signature, uid ) )
+		EVENTS_LOG.error( 'Wrong signature "{}" for uid "{}"'.format( signature, uid ) )
 		abort( 404 )
 	try:
 		output = check_output( [ './bin/runworker', uid_signature ] )
 	except CalledProcessError, e:
 		EVENTS_LOG.error( 'runworker: exit code {}'.format( e.returncode ) )
+		EVENTS_LOG.info( 'runworker: output...\n'.format( e.output ) )
 		abort( 404 )
 	try:
 		data = loads( output )
@@ -65,7 +67,7 @@ def spinup( uid_signature = None ):
 	if not data[ 'status' ] == 'ok':
 		EVENTS_LOG.error( 'runworker: status "{}"'.format( data[ 'status' ] ) )
 		abort( 404 )
-	EVENTS_LOG.info( 'started container for uid "{}"'.format( uid ) )
+	EVENTS_LOG.info( 'Started container for uid "{}"'.format( uid ) )
 	return redirect( REDIRECT_URL.format( port = data[ 'port' ], uid = uid, signature = signature ) )
 
 if __name__ == "__main__":
