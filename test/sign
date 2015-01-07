@@ -2,6 +2,9 @@
 
 echocol() { echo -ne "\033[31m$@...\033[0m\n"; }
 
+echocol "Cleanup running containers"
+( [[ $(docker ps -qa | wc -l) -gt 0 ]] && docker rm -vf $(docker ps -qa) ) >/dev/null 2>&1 || true
+
 . ./bin/set_addresses
 
 NUM_WORKERS=2
