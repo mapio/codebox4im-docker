@@ -1,9 +1,9 @@
 from hashlib import sha256
 from hmac import new as mac
 from json import loads, dumps
-from logging import StreamHandler, FileHandler, Formatter, INFO, getLogger
+from logging import StreamHandler, FileHandler, Formatter, INFO, DEBUG, getLogger
 from os import environ
-from subprocess import check_output, CalledProcessError
+from subprocess import Popen, PIPE
 from sys import argv
 
 from flask import Flask, abort, redirect, request
@@ -11,10 +11,10 @@ from flask import Flask, abort, redirect, request
 app = Flask( __name__ )
 
 EVENTS_LOG = getLogger( 'EVENTS_LOG' )
-EVENTS_LOG.setLevel( INFO )
+EVENTS_LOG.setLevel( DEBUG )
 fh = FileHandler( './var/bootstrap.events' )
-fh.setLevel( INFO )
-f = Formatter( '%(asctime)s: %(message)s', '%Y-%m-%d %H:%M:%S' )
+fh.setLevel( DEBUG )
+f = Formatter( '%(asctime)s %(levelname)s: %(message)s', '%Y-%m-%d %H:%M:%S' )
 fh.setFormatter( f )
 EVENTS_LOG.addHandler( fh )
 EVENTS_LOG.info( 'Start' )
@@ -45,6 +45,7 @@ def favicon():
 
 @app.route( '/<uid_signature>' )
 def spinup( uid_signature = None ):
+
 	try:
 		uid, signature = uid_signature.split( ':' )
 	except ValueError:
@@ -53,12 +54,15 @@ def spinup( uid_signature = None ):
 	if not uid_signature == _sign( uid ):
 		EVENTS_LOG.error( 'Wrong signature "{}" for uid "{}"'.format( signature, uid ) )
 		abort( 404 )
-	try:
-		output = check_output( [ './bin/runworker', uid_signature ] )
-	except CalledProcessError, e:
-		EVENTS_LOG.error( 'runworker: exit code {}'.format( e.returncode ) )
-		EVENTS_LOG.info( 'runworker: output...\n'.format( e.output ) )
+
+	popen = Popen( [ './bin/runworker', uid_signature ], stdout = PIPE, stderr = PIPE )
+	output, perror = popen.communicate()
+	if popen.returncode != 0:
+		EVENTS_LOG.error( 'runworker: exit code {}'.format( popen.returncode ) )
+		EVENTS_LOG.debug( 'runworker: stdout...\n{}'.format( output ) )
+		EVENTS_LOG.debug( 'runworker: stderr...\n{}'.format( perror ) )
 		abort( 404 )
+
 	try:
 		data = loads( output )
 	except ValueError:
@@ -68,6 +72,7 @@ def spinup( uid_signature = None ):
 		EVENTS_LOG.error( 'runworker: status "{}"'.format( data[ 'status' ] ) )
 		abort( 404 )
 	EVENTS_LOG.info( 'Started container for uid "{}"'.format( uid ) )
+
 	return redirect( REDIRECT_URL.format( port = data[ 'port' ], uid = uid, signature = signature ) )
 
 if __name__ == "__main__":
