@@ -58,7 +58,7 @@ if [[ -r "$docker_id" ]]; then
 		echoerr " instance alive!"
 	else
 		echoerr " instance not running! Cleaning up id..."
-		echoerr -n "docker rm -f:"; docker rm -f "$did" 1>&2
+		docker rm -f "$did" >/dev/null 2>&1
 		did=''
 		rm -f "$docker_id"
 	fi
