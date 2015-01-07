@@ -7,7 +7,11 @@ echocol "Cleanup running containers"
 
 . ./bin/set_addresses
 
-NUM_WORKERS=2
+if [[ -z "$1" ]]; then
+	NUM_WORKERS=2
+else
+	NUM_WORKERS=$1
+fi
 
 echocol "Preparing confs"
 
