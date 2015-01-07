@@ -44,40 +44,66 @@ fi
 user=${user_key%%:*}
 key=${user_key##*:}
 
-mkdir -p ./var/data
-base_dir=$(realpath ./var/data)
-user_dir="${base_dir}/${user}"
+mkdir -p ./var/run
+run_dir=$(realpath ./var/run)
+user_dir="${run_dir}/${user}"
 mkdir -p "${user_dir}"
 
-docker_id="${user_dir}/docker_id.txt"
-if [[ -r "$docker_id" ]]; then
-	did=$(cat "$docker_id")
-	echoerr -n "Found previous run id '$did'..."
-	running=$(docker inspect -f '{{ .State.Running }}' $did 2>/dev/null)
+# Starting the home container
+
+home_id="${user_dir}/home_id.txt"
+if [[ -r "$home_id" ]]; then
+	hid=$(cat "$home_id")
+	echoerr -n "Found previous home '$hid'..."
+	running=$(docker inspect -f '{{index .VolumesRW "/home/esame/workspace"}}' "$hid" 2>/dev/null)
 	if [[ $running == "true" ]]; then
-		echoerr " instance alive!"
+		echoerr " home alive!"
 	else
-		echoerr " instance not running! Cleaning up id..."
-		docker rm -f "$did" >/dev/null 2>&1
-		did=''
-		rm -f "$docker_id"
+		echoerr " previous home seems not to be a volume... EXITING!"
+		exit 1
 	fi
 else
-	did=''
+	hid=''
 fi
 
-if [[ -z "$did" ]]; then
-	did=$(docker run --name "tm_worker_${user}" -d -P -e "TSERVER_ADDRESS=$TSERVER_ADDRESS" mapio/tm-workers run --users "$user_key" /home/esame/workspace)
-	wait_codebox $did
-	echo $did > "$docker_id"
+if [[ -z "$hid" ]]; then
+	hid=$(docker create -v /home/esame/workspace --name "tm_home_${user}" scratch .)
+	docker run --rm --volumes-from "tm_home_${user}" busybox chown 1000:1000 /home/esame/workspace
+	echoerr "Home volume created ($hid)"
+	echo $hid > "$home_id"
 fi
 
-port=$(docker port $did 8000)
+# Starting the worker container
+
+worker_id="${user_dir}/worker_id.txt"
+if [[ -r "$worker_id" ]]; then
+	wid=$(cat "$worker_id")
+	echoerr -n "Found previous worker '$wid'..."
+	running=$(docker inspect -f '{{ .State.Running }}' "$wid" 2>/dev/null)
+	if [[ $running == "true" ]]; then
+		echoerr " worker alive!"
+	else
+		echoerr " worker not running! Cleaning up..."
+		docker rm -f "$wid" >/dev/null 2>&1
+		wid=''
+		rm -f "$worker_id"
+	fi
+else
+	wid=''
+fi
+
+if [[ -z "$wid" ]]; then
+	wid=$(docker run --volumes-from "tm_home_${user}" --name "tm_worker_${user}" -d -P -e "TSERVER_ADDRESS=$TSERVER_ADDRESS" mapio/tm-workers run --users "$user_key" /home/esame/workspace)
+	wait_codebox $wid
+	echo $wid > "$worker_id"
+fi
+
+port=$(docker port $wid 8000)
 port=${port##*:}
 
 if curl -s http://$ARBITER_ADDRESS:$port/ | grep -q '<title>Codebox</title>'; then
 	echoerr -e "Codebox ready at:\n\thttp://$ARBITER_ADDRESS:$port/?email=$user&token=$key"
-	echo "{ \"user\": \"$user\", \"key\": \"$key\", \"did\": \"$did\", \"port\": \"$port\", \"status\": \"ok\" }"
+	echo "{ \"user\": \"$user\", \"key\": \"$key\", \"hid\": \"$hid\", \"wid\": \"$wid\", \"port\": \"$port\", \"status\": \"ok\" }"
 else
 	echoerr "Somehting wrong happened, cant't retrieve codebox homepage!"
 	echo "{ \"user\": \"$user\", \"key\": \"$key\", \"status\": \"error\" }"

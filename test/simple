@@ -9,7 +9,7 @@ echocol "Starting arbiter"
 echocol "Starting a few workers"
 
 for i in $(seq 0 2); do
-	echo "worker $i, uid:signature = " $(docker run --rm -v $(pwd)/bin/runcodebox:/runcodebox -e ARBITER_ADDRESS=$ARBITER_ADDRESS dockerfile/python /runcodebox -d)
+	echo "worker $i, uid:signature = $(docker run --rm -v $(pwd)/bin/runcodebox:/runcodebox -e ARBITER_ADDRESS=$ARBITER_ADDRESS dockerfile/python /runcodebox -d)"
 done
 
 echocol "Restarting a killed container"
@@ -17,9 +17,38 @@ echocol "Restarting a killed container"
 if ! docker exec tm_arbiter /app/bin/runworker killme:key 2>&1 | grep -q 'Codebox ready'; then
 	echo "failed to start killme:key"
 	exit 1
+else
+	echo "successfully stared killme:key"
 fi
+echo "killing killme:key"
 docker kill tm_worker_killme >/dev/null
-if [[ $(docker exec tm_arbiter /app/bin/runworker killme:key 2>&1 | grep -E 'instance not running|Codebox ready' | wc -l ) -ne 2 ]]; then
+if [[ $(docker exec tm_arbiter /app/bin/runworker killme:key 2>&1 | grep -E 'worker not running|Codebox ready' | wc -l ) -ne 2 ]]; then
 	echo "failed to restart killme:key"
 	exit 1
+else
+	echo "successfully restared killme:key"
+fi
+
+echocol "Testing persistence"
+if ! docker exec tm_arbiter /app/bin/runworker killme2:key 2>&1 | grep -q 'Codebox ready'; then
+	echo "failed to start killme2:key"
+	exit 1
+else
+	echo "successfully stared killme2:key"
+fi
+echo "writing test.txt in killme2 /home/esame/workspace..."
+docker exec tm_worker_killme2 bash -c 'touch /home/esame/workspace/test.txt'
+echo "killing killme:key"
+docker kill tm_worker_killme2 >/dev/null
+if [[ $(docker exec tm_arbiter /app/bin/runworker killme2:key 2>&1 | grep -E 'worker not running|Codebox ready' | wc -l ) -ne 2 ]]; then
+	echo "failed to restart killme2:key"
+	exit 1
+else
+	echo "successfully restared killme2:key"
+fi
+if [[ $(docker exec tm_worker_killme2 bash -c 'ls /home/esame/workspace') != 'test.txt' ]]; then
+	echo "failed to find test.txt in killme2:key /home/esame/workspace/test.txt"
+	exit 1
+else
+	echo "fiound test.txt in killme2:key /home/esame/workspace/test.txt"
 fi
