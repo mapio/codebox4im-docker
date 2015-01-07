@@ -2,8 +2,8 @@
 
 echocol() { echo -ne "\033[31m$@...\033[0m\n"; }
 
-echocol "Starting servers"
-export TM_CONFIGS=tserver/etc/conf.py && ./bin/runtserver
+echocol "Starting arbiter"
+#export TM_CONFIGS=tserver/etc/conf.py && ./bin/runtserver
 ./bin/runarbiter
 
 echocol "Starting a few workers"
@@ -11,3 +11,15 @@ echocol "Starting a few workers"
 for i in $(seq 0 2); do
 	echo "worker $i, uid:signature = " $(docker run --rm -v $(pwd)/bin/runcodebox:/runcodebox -e ARBITER_ADDRESS=$ARBITER_ADDRESS dockerfile/python /runcodebox -d)
 done
+
+echocol "Restarting a killed container"
+
+if ! docker exec tm_arbiter /app/bin/runworker killme:key 2>&1 | grep -q 'Codebox ready'; then
+	echo "failed to start killme:key"
+	exit 1
+fi
+docker kill tm_worker_killme >/dev/null
+if [[ $(docker exec tm_arbiter /app/bin/runworker killme:key 2>&1 | grep -E 'instance not running|Codebox ready' | wc -l ) -ne 2 ]]; then
+	echo "failed to restart killme:key"
+	exit 1
+fi
