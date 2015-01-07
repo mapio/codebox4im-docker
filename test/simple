@@ -2,6 +2,8 @@
 
 echocol() { echo -ne "\033[31m$@...\033[0m\n"; }
 
+. ./bin/set_addresses
+
 echocol "Starting arbiter"
 #export TM_CONFIGS=tserver/etc/conf.py && ./bin/runtserver
 ./bin/runarbiter

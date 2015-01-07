@@ -2,6 +2,8 @@
 
 echocol() { echo -ne "\033[31m$@...\033[0m\n"; }
 
+. ./bin/set_addresses
+
 NUM_WORKERS=2
 
 echocol "Preparing confs"
