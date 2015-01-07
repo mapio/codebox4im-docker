@@ -7,10 +7,12 @@ from urllib2 import urlopen, URLError
 from uuid import uuid4
 from webbrowser import open as wopen
 
-if not 'ARBITER_ADDRESS' in environ:
-	exit( 'Please set ARBITER_ADDRESS in the environment' )
+try:
+	ARBITER_ADDRESS = environ[ 'ARBITER_ADDRESS' ]
+except KeyError:
+	ARBITER_ADDRESS = 'codebox.silab.di.unimi.it'
 
-ARBITER_URL = 'http://{}/'.format( environ[ 'ARBITER_ADDRESS' ] )
+ARBITER_URL = 'http://{}/'.format( ARBITER_ADDRESS )
 
 uid_file = join( expanduser( '~' ), '.runcodebox.uid' )
 try:
