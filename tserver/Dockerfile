@@ -6,15 +6,20 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update
 
-RUN apt-get install -qy libevent-1.4 realpath docker.io
+RUN apt-get install -qy libevent-1.4 realpath apt-transport-https
 
 RUN pip install gunicorn gevent flask
 
 RUN rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+RUN adduser --disabled-password --gecos '' tserver
 
-COPY . /app
+COPY . /tmp/app
+
+RUN cp -r /tmp/app /app && chown -R tserver:tserver /app && rm -rf /tmp/app
+
+WORKDIR /app
+USER tserver
 
 CMD [ "/app/bin/gunicorn", "startail" ]
 
