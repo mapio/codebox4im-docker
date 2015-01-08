@@ -15,21 +15,11 @@ if [ "$1" == "start" ] || [ "$1" == "startail" ]; then
 	  echo "UPLOAD_DIR='/app/uploads/'"
 	  echo "HOME='/home/esame/workspace'"
 	) >> "$TM_SETTINGS"
-	msg="Attempting to start gunicorn with\n\tconfiguration: $TM_SETTINGS\n\tcode: $PYTHONPATH"
-	if grep -q '^BIND\s*=' "$TM_SETTINGS"; then
-		bind="$(grep '^BIND\s*=' $TM_SETTINGS | cut -d = -f 2 | cut -d"'" -f 2)"
-		msg="$msg\n\tbind: $bind (as specified by '$TM_SETTINGS')"
-		bind_opt="--bind $bind"
-	else
-		bind=$(grep 'bind\s*=' "$BASEDIR"/etc/gunicorn.conf | cut -d = -f 2 | cut -d"'" -f 2)
-		msg="$msg\n\tbind: $bind (as specified by '$BASEDIR/etc/gunicorn.conf')"
-		bind_opt=""
-	fi
-	echo -e "$msg"
+	echo -e "Attempting to start gunicorn with\n\tconfiguration: $TM_SETTINGS\n\tcode: $PYTHONPATH"
 	rm -f "$BASEDIR"/var/gunicorn.*
 	touch "$BASEDIR"/var/gunicorn.errors
 
-	gunicorn -m 0022 -c "$BASEDIR"/etc/gunicorn.conf $bind_opt \
+	gunicorn -m 0022 -c "$BASEDIR"/etc/gunicorn.conf \
 		--access-logfile "$BASEDIR"/var/gunicorn.accesses \
 		--error-logfile "$BASEDIR"/var/gunicorn.errors \
 		--pid "$BASEDIR"/var/gunicorn.pid tm.web:app
