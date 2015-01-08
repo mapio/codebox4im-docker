@@ -25,7 +25,7 @@ done ) > $tempdir/registered_uids.txt
 export TM_CONFIGS=./test/conf.py
 
 echocol "Starting servers"
-rm -rf uploads && ./bin/runtserver
+rm -rf uploads && mkdir uploads && ./bin/runtserver
 ./bin/runarbiter
 
 echocol "Starting, signing and uploading $(($NUM_WORKERS + 1)) worker(s)"
